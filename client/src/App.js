@@ -8,28 +8,54 @@ import axios from 'axios';
 const App = () => {
   const [savedList, setSavedList] = useState([]);
   const [movieList, setMovieList] = useState([]);
+  const [reqUpdate, setReqUpdate] = useState(false);
+  const [editting, setEditting] = useState(null);
+
+  let URL = 'http://localhost:5000/api/movies/'
+
 
   const getMovieList = () => {
-    axios
-      .get("http://localhost:5000/api/movies")
+    axios.get(URL)
       .then(res => setMovieList(res.data))
       .catch(err => console.log(err.response));
   };
 
+  const deleteMovie = (id) => {
+    axios.delete(URL+id)
+    .then(res => {
+      setReqUpdate(!reqUpdate);
+    })
+    .catch(err => {
+      window.alert(err)
+    });
+  };
+  const editMovie = (id) => {
+    setEditting(id)
+  }
+  const updateMovie = (form) => {
+    axios.put(URL+form.id, form)
+    .then(res => {
+      setReqUpdate(!reqUpdate);
+      setEditting(null);
+    })
+    .catch(err => {
+      window.alert(err);
+    })
+  }
   const addToSavedList = movie => {
     setSavedList([...savedList, movie]);
   };
 
   useEffect(() => {
     getMovieList();
-  }, []);
+  }, [reqUpdate]);
 
   return (
     <>
       <SavedList list={savedList} />
 
       <Route exact path="/">
-        <MovieList movies={movieList} />
+        <MovieList movies={movieList} delete={deleteMovie} edit={editMovie} editting={editting} update={updateMovie}/>
       </Route>
 
       <Route path="/movies/:id">
